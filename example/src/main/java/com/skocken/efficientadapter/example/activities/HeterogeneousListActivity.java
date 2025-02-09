@@ -2,17 +2,21 @@ package com.skocken.efficientadapter.example.activities;
 
 import com.skocken.efficientadapter.example.R;
 import com.skocken.efficientadapter.example.models.Book;
+import com.skocken.efficientadapter.example.models.Item;
+import com.skocken.efficientadapter.example.models.Music;
 import com.skocken.efficientadapter.example.models.Plane;
 import com.skocken.efficientadapter.example.viewholders.BookViewHolder;
 import com.skocken.efficientadapter.example.viewholders.PlaneViewHolder;
-import com.skocken.efficientadapter.lib.adapter.AbsViewHolderAdapter;
-import com.skocken.efficientadapter.lib.adapter.HeterogeneousAdapter;
-import com.skocken.efficientadapter.lib.viewholder.AbsViewHolder;
+import com.skocken.efficientadapter.lib.adapter.EfficientAdapter;
+import com.skocken.efficientadapter.lib.adapter.EfficientRecyclerAdapter;
+import com.skocken.efficientadapter.lib.viewholder.EfficientViewHolder;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.widget.Toast;
 
@@ -20,10 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HeterogeneousListActivity extends Activity {
-
-    private static final int VIEW_TYPE_BOOK = 0;
-
-    private static final int VIEW_TYPE_PLANE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,63 +37,32 @@ public class HeterogeneousListActivity extends Activity {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
 
-        HeterogeneousAdapter adapter = new HeterogeneousAdapter(generateListObjects()) {
-            @Override
-            public int getItemViewType(int position) {
-                if (get(position) instanceof Plane) {
-                    return VIEW_TYPE_PLANE;
-                } else {
-                    return VIEW_TYPE_BOOK;
-                }
-            }
-
-            @Override
-            protected Class<? extends AbsViewHolder> getViewHolderClass(int viewType) {
-                switch (viewType) {
-                    case VIEW_TYPE_BOOK:
-                        return BookViewHolder.class;
-                    case VIEW_TYPE_PLANE:
-                        return PlaneViewHolder.class;
-                    default:
-                        return null;
-                }
-            }
-
-            @Override
-            protected int getLayoutResId(int viewType) {
-                switch (viewType) {
-                    case VIEW_TYPE_BOOK:
-                        return R.layout.item_book;
-                    case VIEW_TYPE_PLANE:
-                        return R.layout.item_plane;
-                    default:
-                        return 0;
-                }
-            }
-        };
+        EfficientRecyclerAdapter<Item> adapter = new PlaneBookAdapter(generateListObjects());
 
         recyclerView.setAdapter(adapter);
 
-        adapter.setOnItemClickListener(new AbsViewHolderAdapter.OnItemClickListener() {
+        adapter.setOnItemClickListener(new EfficientAdapter.OnItemClickListener<Item>() {
             @Override
-            public void onItemClick(AbsViewHolderAdapter<?> parent, View view, Object object,
-                    int position) {
+            public void onItemClick(@NonNull EfficientAdapter<Item> parent, @NonNull View view,
+                                    Item item, int position) {
                 Toast.makeText(view.getContext(),
-                        "Click on: " + object.toString(),
+                        "Click on: " + item.toString(),
                         Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private List<Object> generateListObjects() {
-        List<Object> objects = new ArrayList<Object>();
+    private List<Item> generateListObjects() {
+        List<Item> objects = new ArrayList<>();
         objects.add(new Plane("Airbus", "A300"));
         objects.add(new Plane("Airbus", "A310"));
-        objects.add(new Book("Lorem", "ipsum dolor sit amet", "consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh. Mauris ac mauris sed pede pellentesque fermentum. Maecenas adipiscing ante non diam sodales hendrerit."));
+        objects.add(new Book("Lorem", "ipsum dolor sit amet",
+                "consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh. Mauris ac mauris sed pede pellentesque fermentum. Maecenas adipiscing ante non diam sodales hendrerit."));
         objects.add(new Plane("Airbus", "A310 MRTT"));
         objects.add(new Plane("Airbus", "CC-150 Polaris Canadian Armed Forces"));
         objects.add(new Plane("Airbus", "A318"));
         objects.add(new Plane("Airbus", "A319"));
+        objects.add(new Music("Michael Jackson"));
         objects.add(new Plane("Airbus", "A319CJ"));
         objects.add(new Plane("Airbus", "A320"));
         objects.add(new Plane("Airbus", "A321"));
@@ -105,7 +74,8 @@ public class HeterogeneousListActivity extends Activity {
         objects.add(new Plane("Airbus", "A400M"));
         objects.add(new Plane("Airbus", "Beluga"));
         objects.add(new Plane("Airbus", "E-Fan"));
-        objects.add(new Book("Ut velit", "mauris", "egestas sed, gravida nec, ornare ut, mi. Aenean ut orci vel massa suscipit pulvinar. Nulla sollicitudin. Fusce varius, ligula non tempus aliquam, nunc turpis ullamcorper nibh, in tempus sapien eros vitae ligula. Pellentesque rhoncus nunc et augue. Integer id felis. Curabitur aliquet pellentesque diam. Integer quis metus vitae elit lobortis egestas. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Morbi vel erat non mauris convallis vehicula. Nulla et sapien. Integer tortor tellus, aliquam faucibus, convallis id, congue eu, quam. Mauris ullamcorper felis vitae erat. Proin feugiat, augue non elementum posuere, metus purus iaculis lectus, et tristique ligula justo vitae magna."));
+        objects.add(new Book("Ut velit", "mauris",
+                "egestas sed, gravida nec, ornare ut, mi. Aenean ut orci vel massa suscipit pulvinar. Nulla sollicitudin. Fusce varius, ligula non tempus aliquam, nunc turpis ullamcorper nibh, in tempus sapien eros vitae ligula. Pellentesque rhoncus nunc et augue. Integer id felis. Curabitur aliquet pellentesque diam. Integer quis metus vitae elit lobortis egestas. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Morbi vel erat non mauris convallis vehicula. Nulla et sapien. Integer tortor tellus, aliquam faucibus, convallis id, congue eu, quam. Mauris ullamcorper felis vitae erat. Proin feugiat, augue non elementum posuere, metus purus iaculis lectus, et tristique ligula justo vitae magna."));
         objects.add(new Plane("Boeing", "Model B"));
         objects.add(new Plane("Boeing", "Model C"));
         objects.add(new Plane("Boeing", "Model 1"));
@@ -125,7 +95,8 @@ public class HeterogeneousListActivity extends Activity {
         objects.add(new Plane("Boeing", "53"));
         objects.add(new Plane("Boeing", "54"));
         objects.add(new Plane("Boeing", "55"));
-        objects.add(new Book("Aliquam convallis", "sollicitudin purus", "Praesent aliquam, enim at fermentum mollis, ligula massa adipiscing nisl, ac euismod nibh nisl eu lectus. Fusce vulputate sem at sapien. Vivamus leo. Aliquam euismod libero eu enim. Nulla nec felis sed leo placerat imperdiet. Aenean suscipit nulla in justo. Suspendisse cursus rutrum augue. Nulla tincidunt tincidunt mi. Curabitur iaculis, lorem vel rhoncus faucibus, felis magna fermentum augue, et ultricies lacus lorem varius purus. Curabitur eu amet."));
+        objects.add(new Book("Aliquam convallis", "sollicitudin purus",
+                "Praesent aliquam, enim at fermentum mollis, ligula massa adipiscing nisl, ac euismod nibh nisl eu lectus. Fusce vulputate sem at sapien. Vivamus leo. Aliquam euismod libero eu enim. Nulla nec felis sed leo placerat imperdiet. Aenean suscipit nulla in justo. Suspendisse cursus rutrum augue. Nulla tincidunt tincidunt mi. Curabitur iaculis, lorem vel rhoncus faucibus, felis magna fermentum augue, et ultricies lacus lorem varius purus. Curabitur eu amet."));
         objects.add(new Plane("Boeing", "56"));
         objects.add(new Plane("Boeing", "57"));
         objects.add(new Plane("Boeing", "58"));
@@ -228,5 +199,72 @@ public class HeterogeneousListActivity extends Activity {
         objects.add(new Plane("Boeing", "787"));
 
         return objects;
+    }
+
+    private static class PlaneBookAdapter extends EfficientRecyclerAdapter<Item> {
+
+        private static final int VIEW_TYPE_BOOK = 0;
+
+        private static final int VIEW_TYPE_PLANE = 1;
+
+        private static final int VIEW_TYPE_MUSIC = 2;
+
+        PlaneBookAdapter(List<Item> objects) {
+            super(objects);
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if (get(position) instanceof Plane) {
+                return VIEW_TYPE_PLANE;
+            } else if (get(position) instanceof Book) {
+                return VIEW_TYPE_BOOK;
+            } else if (get(position) instanceof Music) {
+                return VIEW_TYPE_MUSIC;
+            } else {
+                return -1;
+            }
+        }
+
+        @Override
+        public Class<? extends EfficientViewHolder<? extends Item>> getViewHolderClass(int
+                viewType) {
+            switch (viewType) {
+                case VIEW_TYPE_BOOK:
+                    return BookViewHolder.class;
+                case VIEW_TYPE_PLANE:
+                    return PlaneViewHolder.class;
+                case VIEW_TYPE_MUSIC:
+                    return MusicViewHolder.class;
+                default:
+                    return null;
+            }
+        }
+
+        @Override
+        public int getLayoutResId(int viewType) {
+            switch (viewType) {
+                case VIEW_TYPE_BOOK:
+                    return R.layout.item_book;
+                case VIEW_TYPE_PLANE:
+                    return R.layout.item_plane;
+                case VIEW_TYPE_MUSIC:
+                    return R.layout.item_music;
+                default:
+                    return 0;
+            }
+        }
+
+        public class MusicViewHolder extends EfficientViewHolder<Music> {
+
+            public MusicViewHolder(View itemView) {
+                super(itemView);
+            }
+
+            @Override
+            protected void updateView(@NonNull Context context, Music item) {
+                setText(R.id.title_textview, item.getArtist());
+            }
+        }
     }
 }
